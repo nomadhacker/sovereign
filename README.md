@@ -3,7 +3,7 @@
 Introduction
 ============
 
-Sovereign is a set of [Ansible](http://ansibleworks.com) playbooks that you can use to build and maintain your own [personal cloud](http://www.urbandictionary.com/define.php?term=clown%20computing) based entirely on open source software, so you’re in control.
+Sovereign is a set of [Ansible](http://www.ansible.com) playbooks that you can use to build and maintain your own [personal cloud](http://www.urbandictionary.com/define.php?term=clown%20computing) based entirely on open source software, so you’re in control.
 
 If you’ve never used Ansible before, you might find these playbooks useful to learn from, since they show off a fair bit of what the tool can do.
 
@@ -54,7 +54,7 @@ What You’ll Need
 ----------------
 
 1.  A VPS (or bare-metal server if you wanna ball hard). My VPS is hosted at [Linode](http://www.linode.com/?r=45405878277aa04ee1f1d21394285da6b43f963b). You’ll probably want at least 512 MB of RAM between Apache, Solr, and PostgreSQL. Mine has 1024.
-2.  [64-bit Debian 7](http://www.debian.org/) or an equivalent Linux distribution. (You can use whatever distro you want, but deviating from Debian will require more tweaks to the playbooks. See Ansible’s different [packaging](http://www.ansibleworks.com/docs/modules.html#packaging) modules.)
+2.  [64-bit Debian 7](http://www.debian.org/) or an equivalent Linux distribution. (You can use whatever distro you want, but deviating from Debian will require more tweaks to the playbooks. See Ansible’s different [packaging](http://docs.ansible.com/ansible/list_of_packaging_modules.html) modules.)
 3.  A wildcard SSL certificate. You can either buy one or self-sign if you want to save money.
 4.  A [Tarsnap](http://www.tarsnap.com) account with some credit in it. You could comment this out if you want to use a different backup service. Consider paying your hosting provider for backups or using an additional backup service for redundancy.
 
@@ -215,6 +215,12 @@ Sign in to the ZNC web interface and set things up to your liking. It isn’t ex
 	ssh deploy@example.com -L 6643:localhost:6643
 
 Then proceed to http://localhost:6643 in your web browser.
+
+Similarly, to access the server monitoring page, use another SSH tunnel:
+
+    ssh deploy@example.com -L 2812:localhost:2812
+
+Again proceeding to http://localhost:2812 in your web browser.
 
 Finally, sign into ownCloud to set it up. You should select PostgreSQL as the configuration backend.
 
