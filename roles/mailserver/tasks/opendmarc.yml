@@ -34,6 +34,14 @@
     - restart opendmarc
     - restart postfix
 
+- name: Copy fixed OpenDMARC schema into place
+  copy:
+    src: opendmarc_mysql_schema.sql
+    dest: /usr/share/doc/opendmarc/schema.mysql
+    owner: root
+    group: root
+    mode: 0644
+
 - name: Create database user for OpenDMARC reports
   mysql_user: user={{ mail_db_opendmarc_username }} password={{ mail_db_opendmarc_password }} state=present priv="opendmarc.*:ALL"
 

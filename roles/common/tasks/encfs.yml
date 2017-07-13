@@ -11,7 +11,7 @@
   file: state=directory path=/encrypted
 
 - name: Check if the /encrypted directory is empty
-  shell: ls /encrypted/*
+  shell: ls /encrypted/
   ignore_errors: True
   changed_when: False  # never report as "changed"
   register: encfs_check

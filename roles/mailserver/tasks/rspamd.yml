@@ -11,29 +11,59 @@
   tags:
     - dependencies
 
-- name: Install Rspamd, Rmilter, and Redis
+- name: Install Rspamd and Redis
   apt: pkg={{ item }} state=installed update_cache=yes
   with_items:
     - rspamd
-    - rmilter
     - redis-server
   tags:
     - dependencies
 
-- name: Configure rmilter.common
-  copy: src=etc_rmilter.conf.common dest=/etc/rmilter.conf.common
+# - name: Set Redis Maxmemory
+- name: Set Redis Maxmemory
+  lineinfile:
+    dest=/etc/redis/redis.conf
+    regexp="^# maxmemory"
+    line=" maxmemory 500mb"
+    state=present
 
-- name: Configure rmilter socket
-  lineinfile: dest=/etc/rmilter.conf regexp=^bind_socket line="bind_socket = inet:9900@localhost"
+# - name: Set Redis memory-policy
+- name: Set Redis memory-policy
+  lineinfile:
+    dest=/etc/redis/redis.conf
+    regexp="^# maxmemory-policy"
+    line=" maxmemory-policy volatile-lru"
+    state=present
 
-- name: Configure rmilter service
-  copy: src=lib_systemd_system_rmilter.socket dest=/lib/systemd/system/rmilter.socket
+- name: Bind rspamd to localhost
+  copy:
+    src: rspamd_local_worker_normal.inc
+    dest: /etc/rspamd/local.d/worker-normal.inc
+    owner: root
+    group: root
+    mode: 0644
+  notify: restart rspamd
+
+- name: Set rspamd proxy mode
+  copy:
+    src: rspamd_local_worker_proxy.inc
+    dest: /etc/rspamd/local.d/worker-proxy.inc
+    owner: root
+    group: root
+    mode: 0644
+  notify: restart rspamd
+
+- name: Set rspamd to use Redis classifier
+  copy:
+    src: rspamd_local_classifier_bayes.conf
+    dest: /etc/rspamd/local.d/classifier-bayes.conf
+    owner: root
+    group: root
+    mode: 0644
+  notify: restart rspamd
 
 - name: Start redis
   service: name=redis-server state=started
 
 - name: Start rspamd systemd listener
   service: name=rspamd state=started
-
-- name: Start rmilter systemd listener
-  service: name=rmilter state=started

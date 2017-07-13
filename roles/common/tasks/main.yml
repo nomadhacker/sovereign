@@ -4,6 +4,9 @@
   tags:
     - dependencies
 
+- name: install aptitude
+  apt: pkg=aptitude state=installed
+
 - name: Upgrade all safe packages
   apt: upgrade=safe
   tags:
@@ -23,7 +26,7 @@
     - iotop
     - molly-guard
     - mosh
-    - python-software-properties
+    - software-properties-common #python-software-properties
     - ruby
     - screen
     - sudo

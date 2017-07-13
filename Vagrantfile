@@ -9,7 +9,7 @@ Vagrant.configure('2') do |config|
     ansible.host_key_checking = false
     ansible.extra_vars = { ansible_ssh_user: 'vagrant', testing: true }
     ansible.groups = {
-      "testing" => ["jessie"]
+      "testing" => ["stretch"]
     }
 
     # ansible.tags = ['blog']
@@ -34,8 +34,13 @@ Vagrant.configure('2') do |config|
     config.cache.scope = :box
   end
 
+  # Debian 9 64-bit (officially supported)
+  config.vm.define 'stretch', primary: true do |stretch|
+    stretch.vm.box = 'debian/stretch64'
+  end
+
   # Debian 8 64-bit (officially supported)
-  config.vm.define 'jessie', primary: true do |jessie|
+  config.vm.define 'jessie', autostart: false do |jessie|
     jessie.vm.box = 'box-cutter/debian8'
   end
 
