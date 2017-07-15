@@ -1,0 +1,25 @@
+<VirtualHost *:80>
+    ServerName {{ gogs_domain }}
+
+    Redirect permanent / https://{{ gogs_domain }}/
+</VirtualHost>
+
+<VirtualHost *:443>
+    Protocols h2 http/1.1
+    ServerName {{ gogs_domain }}
+    SSLEngine On
+
+    DocumentRoot /var/www/gogs/
+    <Directory "/var/www/gogs/">
+        Options FollowSymLinks
+        AllowOverride None
+        Order allow,deny
+        allow from all
+    </Directory>
+    ProxyRequests Off
+    ProxyPass / http://127.0.0.1:3000/
+    ProxyPassReverse / http://127.0.0.1:3000/
+
+    CustomLog /var/log/apache2/gogs_access.log combined
+    ErrorLog /var/log/apache2/gogs_error.log
+</VirtualHost>

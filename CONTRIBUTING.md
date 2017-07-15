@@ -16,7 +16,7 @@ Sovereign is an Ansible playbook that uses the modules in this repository to con
 
 ### Naming
 
-Modules should be named after the software they add (as opposed to the functionality they provide). Soverign is currently inconsistent on this. For example, there are the `ircbouncer` and `blog` modules, but there are also the `owncloud` and `tarsnap` modules. Please name modules after the software used, though, so that it is possible to provide alternatives for functionality.
+Modules should be named after the software they add (as opposed to the functionality they provide). Soverign is currently inconsistent on this. For example, there are the `ircbouncer` and `blog` modules, but there are also the `nextcloud` and `tarsnap` modules. Please name modules after the software used, though, so that it is possible to provide alternatives for functionality.
 
 ### Making decisions
 

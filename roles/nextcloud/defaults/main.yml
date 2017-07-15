@@ -1,0 +1,8 @@
+secret_root: '{{ inventory_dir | realpath }}'
+secret_name: 'secret'
+secret: '{{ secret_root + "/" + secret_name }}'
+
+nextcloud_domain: "cloud.{{ domain }}"
+nextcloud_db_username: nextcloud
+nextcloud_db_password: "{{ lookup('password', secret + '/' + 'nextcloud_db_password', length=32) }}"
+nextcloud_db_database: nextcloud

@@ -1,0 +1,69 @@
+---
+# Installs the NextCloud personal cloud software.
+
+- name: Install NextCloud dependencies
+  apt: pkg={{ item }} state=present
+  with_items:
+    - postgresql
+    - python-psycopg2
+    - php
+    - php-bz2
+    - php-curl
+    - php-gd
+    - php-imagick
+    - php-intl
+    - php-mbstring
+    - php-xml
+    - php-zip
+  tags:
+    - dependencies
+
+- name: Set password for PostgreSQL admin user
+  become: true
+  become_user: postgres
+  postgresql_user: name={{ db_admin_username }} password={{ db_admin_password }} encrypted=yes
+
+- name: Create database user for NextCloud
+  postgresql_user: login_host=localhost login_user={{ db_admin_username }} login_password="{{ db_admin_password }}" name={{ nextcloud_db_username }} password="{{ nextcloud_db_password }}" role_attr_flags=CREATEDB state=present
+
+- name: Ensure repository key for NextCloud is in place
+  apt_key: url=https://repo.morph027.de/gpg.key state=present
+  tags:
+    - dependencies
+
+- name: Add NextCloud repository
+  apt_repository: repo='deb [arch=amd64] https://repo.morph027.de/nextcloud jessie main'
+  tags:
+    - dependencies
+
+- name: Install NextCloud
+  apt: pkg=nextcloud-server update_cache=yes
+  tags:
+    - dependencies
+
+- name: Ensure NextCloud directory is in place
+  file: state=directory path=/var/www/nextcloud
+
+- name: Copy NextCloud run script
+  copy:
+    src: nextcloud-run.sh
+    dest: /tmp/nextcloud-run.sh
+    mode: 0644
+
+- name: Run NextCloud script
+  command: bash /tmp/nextcloud-run.sh
+
+- name: Move NextCloud data to encrypted filesystem
+  command: mv /var/www/nextcloud/data /decrypted/nextcloud-data creates=/decrypted/nextcloud-data
+- file: src=/decrypted/nextcloud-data dest=/var/www/nextcloud/data owner=www-data group=www-data state=link
+
+- name: Configure Apache for NextCloud
+  template: src=etc_apache2_sites-available_nextcloud.j2 dest=/etc/apache2/sites-available/nextcloud.conf group=root
+  notify: restart apache
+
+- name: Enable NextCloud site
+  command: a2ensite nextcloud.conf creates=/etc/apache2/sites-enabled/nextcloud.conf
+  notify: restart apache
+
+- name: Install NextCloud cronjob
+  cron: name="NextCloud" user="www-data" minute="*/5" job="php -f /var/www/nextcloud/cron.php > /dev/null"

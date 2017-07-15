@@ -1,0 +1,33 @@
+- name: Download gogs release
+  get_url: url=https://dl.gogs.io/{{ gogs_version }}/linux_amd64.tar.gz
+           dest=/root/gogs-{{ gogs_version }}.tar.xz mode=0644
+
+- name: Decompress gogs binary
+  unarchive: src=/root/gogs-{{ gogs_version }}.tar.xz
+             dest=/var/www/ copy=no
+             creates=/var/www/gogs/gogs
+             group=www-data owner=www-data
+
+- name: Rename existing Apache cgit virtualhost
+  command: mv /etc/apache2/sites-available/gogs /etc/apache2/sites-available/gogs.conf removes=/etc/apache2/sites-available/gogs
+
+- name: Remove old sites-enabled/gogs symlink (new one will be created by a2ensite)
+  file: path=/etc/apache2/sites-enabled/gogs state=absent
+
+- name: Configure the Apache HTTP server for cgit
+  template: src=etc_apache2_sites-available_gogs.j2
+            dest=/etc/apache2/sites-available/gogs.conf
+            group=root
+            owner=root
+
+- name: Enable Apache CGI module
+  command: a2enmod cgi creates=/etc/apache2/mods-enabled/cgi.load
+  notify: restart apache
+
+- name: Enable Apache rewrite module
+  command: a2enmod rewrite creates=/etc/apache2/mods-enabled/rewrite.load
+  notify: restart apache
+
+- name:  Enable gogs site
+  command: a2ensite gogs.conf creates=/etc/apache2/sites-enabled/gogs.conf
+  notify: restart apache

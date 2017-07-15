@@ -88,8 +88,8 @@ class WebTests(unittest.TestCase):
         self.assertEquals(r.headers['ms-server-activesync'],
                           '14.0')
 
-    def test_owncloud_http(self):
-        """ownCloud is redirecting to https and displaying login page"""
+    def test_nextcloud_http(self):
+        """nextcloud is redirecting to https and displaying login page"""
         r = requests.get('http://cloud.' + TEST_SERVER)
 
         # We should be redirected to https
@@ -99,7 +99,7 @@ class WebTests(unittest.TestCase):
         # 200 - We should be at the login page
         self.assertEquals(r.status_code, 200)
         self.assertIn(
-            'ownCloud',
+            'nextcloud',
             r.content
         )
 

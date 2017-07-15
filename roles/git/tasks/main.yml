@@ -1,4 +1,2 @@
-- include: gitolite.yml
-  tags: gitolite
-- include: cgit.yml
-  tags: cgit
+- include: gogs.yml
+  tags: gogs
