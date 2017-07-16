@@ -1,2 +1,10 @@
 gogs_version: 0.11.19
 gogs_domain: "git.{{ domain }}"
+
+secret_root: '{{ inventory_dir | realpath }}'
+secret_name: 'secret'
+secret: '{{ secret_root + "/" + secret_name }}'
+
+gogs_db_username: gogs
+gogs_db_password: "{{ lookup('password', secret + '/' + 'gogs_db_password', length=32) }}"
+gogs_db_database: gogs
