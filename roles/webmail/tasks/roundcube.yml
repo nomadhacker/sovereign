@@ -2,6 +2,12 @@
   stat: path=/var/www/roundcube/config.inc.php
   register: roundcube_config
 
+- name: Update cert index
+  shell: /usr/sbin/update-ca-certificates
+
+- name: hack to get certs for ansible bug #temporary
+  shell: cd /etc/ssl/certs/ && sudo curl --remote-name --time-cond cacert.pem https://curl.haxx.se/ca/cacert.pem
+
 - name: Install roundcube dependencies
   apt: pkg={{ item }} state=present
   with_items:

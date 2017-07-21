@@ -37,7 +37,7 @@
     - dependencies
 
 - name: Install NextCloud
-  apt: pkg=nextcloud-server update_cache=yes
+  apt: pkg=nextcloud-files update_cache=yes
   tags:
     - dependencies
 
