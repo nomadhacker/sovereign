@@ -1,0 +1,18 @@
+[Unit]
+Description=Gogs (Go Git Service)
+After=syslog.target
+After=network.target
+After=postgresql.service
+After=nginx.service
+
+[Service]
+Type=simple
+User=git
+Group=git
+WorkingDirectory=/home/git/go/src/github.com/gogits/gogs
+ExecStart=/home/git/go/src/github.com/gogits/gogs/gogs web
+Restart=always
+Environment=USER=git HOME=/home/git
+
+[Install]
+WantedBy=multi-user.target

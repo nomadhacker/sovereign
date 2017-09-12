@@ -1,3 +1,17 @@
+- name: Install dependencies for Gogs
+  apt: pkg={{ item }} state=installed
+  with_items:
+    - git
+
+- name: Add git user
+  shell: sudo adduser --disabled-login --gecos 'Gogs' git
+
+- name: Create git data directory in decrypted
+  file:
+    state: directory
+    path: /decrypted/git
+    owner: git
+
 - name: Set password for PostgreSQL admin user
   become: true
   become_user: postgres
@@ -17,19 +31,36 @@
   unarchive: src=/root/gogs-{{ gogs_version }}.tar.xz
              dest=/var/www/ copy=no
              creates=/var/www/gogs/gogs
-             group=www-data owner=www-data
+             group=www-data owner=git
 
-- name: Rename existing Apache cgit virtualhost
+- name: Rename existing Apache gogs virtualhost
   command: mv /etc/apache2/sites-available/gogs /etc/apache2/sites-available/gogs.conf removes=/etc/apache2/sites-available/gogs
 
 - name: Remove old sites-enabled/gogs symlink (new one will be created by a2ensite)
   file: path=/etc/apache2/sites-enabled/gogs state=absent
 
-- name: Configure the Apache HTTP server for cgit
+- name: Copy Gogs service file
+  copy:
+    src: gogs.service
+    dest: /etc/systemd/system/gogs.service
+    owner: root
+    group: root
+
+- name: Enable Gogs service
+  shell: systemctl enable gogs
+
+- name: Start Gogs service
+  shell: systemctl start gogs
+
+- name: Configure the Apache HTTP server for gogs
   template: src=etc_apache2_sites-available_gogs.j2
             dest=/etc/apache2/sites-available/gogs.conf
             group=root
             owner=root
+
+- name: Enable Apache Proxy module
+  command: a2enmod proxy_http creates=/etc/apache2/mods-enabled/proxy_http.load
+  notify: restart apache
 
 - name: Enable Apache CGI module
   command: a2enmod cgi creates=/etc/apache2/mods-enabled/cgi.load
