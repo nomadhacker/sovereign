@@ -19,3 +19,5 @@
 - name: Set ServerName for Apache
   command: a2enconf fqdn creates=/etc/apache2/conf-enabled/fqdn.conf
   notify: restart apache
+
+# disable Indexes http://www.linuxscrew.com/2008/06/03/faq-how-to-disable-directory-browsing-in-apachehttpd/

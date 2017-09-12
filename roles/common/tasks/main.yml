@@ -33,6 +33,7 @@
     - unattended-upgrades
     - vim
     - zsh
+    - locales
   tags:
     - dependencies
 
