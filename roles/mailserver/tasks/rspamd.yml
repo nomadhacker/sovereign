@@ -62,6 +62,9 @@
     mode: 0644
   notify: restart rspamd
 
+# disable worker-normal
+
+
 - name: Start redis
   service: name=redis-server state=started
 

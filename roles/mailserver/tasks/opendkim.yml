@@ -42,3 +42,9 @@
   notify:
     - restart opendkim
     - restart postfix
+
+# fix deb 9 issue
+# /lib/opendkim/opendkim.service.generate
+# systemctl daemon-reload
+# service opendkim restart
+# ??? need to systemctl edit opendkim.service first ???

@@ -34,6 +34,11 @@
     - restart opendmarc
     - restart postfix
 
+# fix deb 9 issue
+# /lib/opendmarc/opendmarc.service.generate
+# systemctl daemon-reload
+# service opendmarc restart
+
 - name: Copy fixed OpenDMARC schema into place
   copy:
     src: opendmarc_mysql_schema.sql

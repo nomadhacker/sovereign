@@ -72,7 +72,6 @@ smtpd_recipient_restrictions =
   reject_non_fqdn_hostname,
   reject_non_fqdn_recipient,
   reject_unknown_recipient_domain,
-  check_policy_service inet:127.0.0.1:10023,
   permit
 
 # See /usr/share/doc/postfix/TLS_README.gz in the postfix-doc package for
@@ -101,7 +100,7 @@ virtual_alias_maps = pgsql:/etc/postfix/pgsql-virtual-alias-maps.cf
 local_recipient_maps = $virtual_mailbox_maps
 
 # Milters: OpenDKIM, OpenDMARC, Rspamd
-smtpd_milters = inet:127.0.0.1:8891,inet:127.0.0.1:54321,inet:127.0.0.1:11333
+smtpd_milters = inet:127.0.0.1:8891,inet:127.0.0.1:54321,inet:127.0.0.1:11332
 non_smtpd_milters = $smtpd_milters
 milter_protocol = 6
 milter_mail_macros = i {mail_addr} {client_addr} {client_name} {auth_authen} {auth_type}

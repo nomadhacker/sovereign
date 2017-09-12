@@ -53,3 +53,6 @@
     - ssmtp
     - submission
   tags: ufw
+
+# fix postscreen db not found
+# https://tech.feedyourhead.at/content/postscreen_cache_db_no_such_file
