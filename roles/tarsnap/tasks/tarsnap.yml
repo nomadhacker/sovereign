@@ -1,4 +1,4 @@
-- name: Check if tarsnap {{ tarsnap_version }} is installed
+- name: Check if Tarsnap {{ tarsnap_version }} is installed
   shell: tarsnap --version | grep {{ tarsnap_version }} --color=never
   register: tarsnap_installed
   changed_when: "tarsnap_installed.stderr != ''"
@@ -34,14 +34,14 @@
     url="https://www.tarsnap.com/download/tarsnap-sigs-{{ tarsnap_version }}.asc"
     dest="/root/tarsnap-sigs-{{ tarsnap_version }}.asc"
 
-- name: Make the command that gets the current sha
+- name: Make the command that gets the current SHA
   when: tarsnap_installed|failed
   template:
     src=getSha.sh
     dest=/root/getSha.sh
     mode=0755
 
-- name: get the SHA256sum for this tarsnap release
+- name: Get the SHA256sum for this tarsnap release
   when: tarsnap_installed|failed
   command:
     ./getSha.sh
@@ -70,16 +70,16 @@
   command: make all install clean chdir=/root/tarsnap-autoconf-{{ tarsnap_version }} creates=/usr/local/bin/tarsnap
 
 - name: Copy Tarsnap key file into place
-  copy: src=decrypted_tarsnap.key dest=/decrypted/tarsnap.key owner=root group=root mode="600" force=no
+  copy: src=decrypted_tarsnap.key dest=/decrypted/tarsnap.key owner=root group=root mode="0600" force=no
 
 - name: Create Tarsnap cache directory
   file: state=directory path=/usr/tarsnap-cache
 
 - name: Install Tarsnap configuration file
-  copy: src=tarsnaprc dest=/root/.tarsnaprc mode="644"
+  copy: src=tarsnaprc dest=/root/.tarsnaprc mode="0644"
 
 - name: Install Tarsnap backup handler script
-  copy: src=tarsnap.sh dest=/root/tarsnap.sh mode="755"
+  copy: src=tarsnap.sh dest=/root/tarsnap.sh mode="0755"
 
 - name: Install nightly Tarsnap-generations cronjob
   cron: name="Tarsnap backup" hour="3" minute="0" job="sh /root/tarsnap.sh >> /var/log/tarsnap.log"

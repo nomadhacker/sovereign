@@ -3,43 +3,35 @@
   tags:
     - dependencies
 
-# Prosody supplies repo for sid, squeeze, wheezy, jessie, trusty, saucy, raring, quantal, precise and lucid
-- name: Add Prosody Debian/Ubuntu repository
+- name: Add Prosody repository
   apt_repository: repo="deb http://packages.prosody.im/debian {{ ansible_distribution_release }} main"
   tags:
     - dependencies
 
-- name: Install Prosody from official repository
-  apt: pkg=prosody update_cache=yes
-  tags:
-    - dependencies
-
-- name: Install lua-sec-prosody on Debian Wheezy and Ubuntu Precise
-  apt: pkg=lua-sec-prosody update_cache=yes
-  when: ansible_distribution_release == 'wheezy' or ansible_distribution_release == 'precise'
-  tags:
-    - dependencies
-
-
-- name: Install lua-sec 0.5+
-  apt: pkg=lua-sec update_cache=yes
-  when: ansible_distribution_release == 'trusty' or ansible_distribution_release == 'jessie'
+- name: Install Prosody and dependencies from official repository
+  apt: pkg={{ item }} update_cache=yes
+  with_items:
+    - prosody
+    - lua-sec
   tags:
     - dependencies
 
 - name: Add prosody user to ssl-cert group
-  user: name=prosody groups=ssl-cert append=yes
+  user: name=prosody group=ssl-cert
+
+- name: Add cert postrenew task
+  copy: src=etc_letsencrypt_postrenew_prosody.sh dest=/etc/letsencrypt/postrenew/prosody.sh mode=0755
 
 - name: Create Prosody data directory
   file: state=directory path=/decrypted/prosody owner=prosody group=prosody
 
 - name: Configure Prosody
-  template: src=prosody.cfg.lua.j2 dest=/etc/prosody/prosody.cfg.lua group=root owner=root
+  template: src=prosody.cfg.lua.j2 dest=/etc/prosody/prosody.cfg.lua group=prosody owner=root mode=0644
   notify: restart prosody
 
 - name: Create Prosody accounts
   command: prosodyctl register {{ item.name }} {{ prosody_virtual_domain }} "{{ item.password }}"
-  with_items: prosody_accounts
+  with_items: "{{ prosody_accounts }}"
 
 - name: Set firewall rules for Prosody
   ufw: rule=allow port={{ item }} proto=tcp

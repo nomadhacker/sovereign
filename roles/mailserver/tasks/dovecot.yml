@@ -1,23 +1,4 @@
-- name: Add wheezy-backports to get a reasonably current Dovecot on Debian 7
-  apt_repository: repo='deb http://http.debian.net/debian wheezy-backports main'
-  when: ansible_distribution_release == 'wheezy'
-  tags:
-    - dependencies
-
-- name: Install Dovecot and related packages on Debian 7
-  apt: pkg={{ item }} update_cache=yes state=latest default_release=wheezy-backports
-  with_items:
-    - dovecot-core
-    - dovecot-imapd
-    - dovecot-lmtpd
-    - dovecot-managesieved
-    - dovecot-pgsql
-    - dovecot-pop3d
-  when: ansible_distribution_release == 'wheezy'
-  tags:
-    - dependencies
-
-- name: Install Dovecot and related packages on distributions other than Debian 7
+- name: Install Dovecot and related packages
   apt: pkg={{ item }} update_cache=yes state=installed
   with_items:
     - dovecot-core
@@ -26,25 +7,12 @@
     - dovecot-managesieved
     - dovecot-pgsql
     - dovecot-pop3d
-  when: ansible_distribution_release != 'wheezy'
+    - dovecot-antispam
   tags:
     - dependencies
 
-- name: Install Postgres 9.1 for Dovecot on older distributions
-  apt: pkg=postgresql-9.1 state=present
-  when: ansible_distribution_release != 'trusty' and ansible_distribution_release != 'jessie'
-  tags:
-    - dependencies
-
-- name: Install Postgres 9.3 for Dovecot on Ubuntu Trusty
-  apt: pkg=postgresql-9.3 state=present
-  when: ansible_distribution_release == 'trusty'
-  tags:
-    - dependencies
-
-- name: Install Postgres 9.4 for Dovecot on Debian Jessie
-  apt: pkg=postgresql-9.4 state=present
-  when: ansible_distribution_release == 'jessie'
+- name: Install Postgres for Dovecot
+  apt: pkg=postgresql state=present
   tags:
     - dependencies
 
@@ -55,15 +23,23 @@
   user: name=vmail group=vmail state=present uid=5000 home=/decrypted shell=/usr/sbin/nologin
 
 - name: Ensure mail domain directories are in place
-  file: state=directory path=/decrypted/{{ item.name }} owner=vmail group=dovecot mode=770
-  with_items: mail_virtual_domains
+  file: state=directory path=/decrypted/{{ item.name }} owner=vmail group=dovecot mode=0770
+  with_items: '{{ mail_virtual_domains }}'
 
 - name: Ensure mail directories are in place
   file: state=directory path=/decrypted/{{ item.domain }}/{{ item.account }} owner=vmail group=dovecot
-  with_items: mail_virtual_users
+  with_items: '{{ mail_virtual_users }}'
 
 - name: Copy dovecot.conf into place
   copy: src=etc_dovecot_dovecot.conf dest=/etc/dovecot/dovecot.conf
+
+- name: Create before.d sieve scripts directory
+  file: path=/etc/dovecot/sieve/before.d state=directory owner=vmail group=dovecot recurse=yes mode=0770
+  notify: restart dovecot
+
+- name: Configure sieve script moving spam into Junk folder
+  copy: src=etc_dovecot_sieve_before.d_no-spam.sieve dest=/etc/dovecot/sieve/before.d/no-spam.sieve owner=vmail group=dovecot
+  notify: restart dovecot
 
 - name: Copy additional Dovecot configuration files in place
   copy: src=etc_dovecot_conf.d_{{ item }} dest=/etc/dovecot/conf.d/{{ item }}
@@ -71,12 +47,22 @@
     - 10-auth.conf
     - 10-mail.conf
     - 10-master.conf
-    - 10-ssl.conf
+    - 90-antispam.conf
+    - 90-plugin.conf
+    - 90-sieve.conf
     - auth-sql.conf.ext
+  notify: restart dovecot
+
+- name: Template 10-ssl.conf
+  template: src=etc_dovecot_conf.d_10-ssl.conf.j2 dest=/etc/dovecot/conf.d/10-ssl.conf
   notify: restart dovecot
 
 - name: Template 15-lda.conf
   template: src=etc_dovecot_conf.d_15-lda.conf.j2 dest=/etc/dovecot/conf.d/15-lda.conf
+  notify: restart dovecot
+
+- name: Template 20-imap.conf
+  template: src=etc_dovecot_conf.d_20-imap.conf.j2 dest=/etc/dovecot/conf.d/20-imap.conf
   notify: restart dovecot
 
 - name: Template dovecot-sql.conf.ext
@@ -85,7 +71,7 @@
 
 - name: Ensure correct permissions on Dovecot config directory
   file: state=directory path=/etc/dovecot
-          group=dovecot owner=vmail mode=770 recurse=yes
+          group=dovecot owner=vmail mode=0770 recurse=yes
   notify: restart dovecot
 
 - name: Set firewall rules for dovecot
@@ -94,3 +80,11 @@
     - imaps
     - pop3s
   tags: ufw
+
+- name: Update post-certificate-renewal task
+  copy:
+    content: "#!/bin/bash\n\nservice dovecot restart\n"
+    dest: /etc/letsencrypt/postrenew/dovecot.sh
+    mode: 0755
+    owner: root
+    group: root

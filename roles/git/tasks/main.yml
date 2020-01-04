@@ -1,5 +1,4 @@
-- include: gitolite.yml tags=gitolite
-  when: ansible_distribution_release != 'trusty'
-- include: gitolite_packaged.yml tags=gitolite
-  when: ansible_distribution_release == 'trusty'
-- include: cgit.yml tags=cgit
+- include: gitolite.yml
+  tags: gitolite
+- include: cgit.yml
+  tags: cgit

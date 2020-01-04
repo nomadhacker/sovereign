@@ -10,10 +10,8 @@ TEST_ADDRESS = 'sovereign@sovereign.local'
 TEST_PASSWORD = 'foo'
 CA_BUNDLE = 'roles/common/files/wildcard_ca.pem'
 
-
 socket.setdefaulttimeout(5)
 os.environ['REQUESTS_CA_BUNDLE'] = CA_BUNDLE
-
 
 class SSHTests(unittest.TestCase):
     def test_ssh_banner(self):
@@ -139,21 +137,6 @@ class WebTests(unittest.TestCase):
             r.content
         )
 
-    def test_newebe_http(self):
-        """Newebe is displaying home page"""
-        r = requests.get('http://newebe.' + TEST_SERVER, verify=False)
-
-        # We should be redirected to https
-        self.assertEquals(r.history[0].status_code, 301)
-        self.assertEquals(r.url, 'https://newebe.' + TEST_SERVER + '/')
-
-        # 200 - We should be at the repository page
-        self.assertEquals(r.status_code, 200)
-        self.assertIn(
-            'Newebe, Freedom to Share',
-            r.content
-        )
-
 
 class IRCTests(unittest.TestCase):
     def test_irc_auth(self):
@@ -252,7 +235,8 @@ class MailTests(unittest.TestCase):
         """Email sent from an MUA via SMTPS is delivered"""
         import smtplib
         msg, subject = new_message(TEST_ADDRESS, 'root@sovereign.local')
-        s = smtplib.SMTP_SSL(TEST_SERVER, 465)
+        s = smtplib.SMTP(TEST_SERVER, 587)
+        s.starttls()
         s.login(TEST_ADDRESS, TEST_PASSWORD)
         s.sendmail(TEST_ADDRESS, ['root@sovereign.local'], msg)
         s.quit()
@@ -262,7 +246,8 @@ class MailTests(unittest.TestCase):
         """Email sent to address with delimiter is delivered"""
         import smtplib
         msg, subject = new_message(TEST_ADDRESS, 'root+foo@sovereign.local')
-        s = smtplib.SMTP_SSL(TEST_SERVER, 465)
+        s = smtplib.SMTP(TEST_SERVER, 587)
+        s.starttls()
         s.login(TEST_ADDRESS, TEST_PASSWORD)
         s.sendmail(TEST_ADDRESS, ['root+foo@sovereign.local'], msg)
         s.quit()
@@ -271,7 +256,8 @@ class MailTests(unittest.TestCase):
     def test_smtps_requires_auth(self):
         """SMTPS with no authentication is rejected"""
         import smtplib
-        s = smtplib.SMTP_SSL(TEST_SERVER, 465)
+        s = smtplib.SMTP(TEST_SERVER, 587)
+        s.starttls()
 
         with self.assertRaisesRegexp(smtplib.SMTPRecipientsRefused, 'Access denied'):
             s.sendmail(TEST_ADDRESS, ['root@sovereign.local'], 'Test')
@@ -304,7 +290,8 @@ class MailTests(unittest.TestCase):
 
         # Send a message to root
         msg, subject = new_message(TEST_ADDRESS, 'root@sovereign.local')
-        s = smtplib.SMTP_SSL(TEST_SERVER, 465)
+        s = smtplib.SMTP(TEST_SERVER, 587)
+        s.starttls()
         s.login(TEST_ADDRESS, TEST_PASSWORD)
         s.sendmail(TEST_ADDRESS, ['root@sovereign.local'], msg)
         s.quit()
@@ -335,7 +322,7 @@ class MailTests(unittest.TestCase):
         m.logout()
 
     def test_smtp_headers(self):
-        """Email sent from an MTA via SMTP+TLS has X-DSPAM and TLS headers"""
+        """Email sent from an MTA via SMTP+TLS has TLS headers"""
         import smtplib
         import imaplib
 
@@ -356,11 +343,6 @@ class MailTests(unittest.TestCase):
         _, data = m.fetch(res[0], '(RFC822)')
 
         self.assertIn(
-            'X-DSPAM-Result: ',
-            data[0][1]
-        )
-
-        self.assertIn(
             'ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits)',
             data[0][1]
         )
@@ -375,7 +357,8 @@ class MailTests(unittest.TestCase):
         """Connects with POP3S and asserts the existance of an email, then deletes it"""
         import smtplib
         msg, subject = new_message(TEST_ADDRESS, 'root@sovereign.local')
-        s = smtplib.SMTP_SSL(TEST_SERVER, 465)
+        s = smtplib.SMTP(TEST_SERVER, 587)
+        s.starttls()
         s.login(TEST_ADDRESS, TEST_PASSWORD)
         s.sendmail(TEST_ADDRESS, ['root@sovereign.local'], msg)
         s.quit()
